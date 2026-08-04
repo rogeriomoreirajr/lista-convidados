@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Convidados</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-muted: #f9fafb;
+      --text: #1f2328;
+      --muted: #656d76;
+      --line: #d8dee4;
+      --line-soft: #eaeef2;
+      --primary: #2563eb;
+      --primary-strong: #1d4ed8;
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --shadow: 0 16px 40px rgba(31, 35, 40, 0.08);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, #eef4ff 0, transparent 34rem), var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.5;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    button { cursor: pointer; }
+
+    .app {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 36px 0 48px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-start;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--primary);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      letter-spacing: -0.06em;
+      line-height: 1;
+    }
+
+    .subtitle {
+      max-width: 620px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .event-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--line-soft);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--muted);
+      box-shadow: 0 8px 24px rgba(31, 35, 40, 0.05);
+      white-space: nowrap;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(130px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .metric-card {
+      padding: 18px;
+      border: 1px solid var(--line-soft);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 10px 28px rgba(31, 35, 40, 0.05);
+    }
+
+    .metric-label {
+      min-height: 38px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 650;
+    }
+
+    .metric-value {
+      margin-top: 10px;
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .panel {
+      overflow: hidden;
+      border: 1px solid var(--line-soft);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 220px auto;
+      gap: 12px;
+      align-items: center;
+      padding: 18px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .field {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .field:focus {
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    textarea.field {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 10px 14px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 700;
+      transition: transform 0.15s, background 0.15s, border-color 0.15s;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover { background: var(--primary-strong); }
+
+    .btn-ghost { border-color: var(--line); }
+
+    .btn-danger {
+      border-color: transparent;
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    th, td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--line-soft);
+      text-align: left;
+      vertical-align: middle;
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: var(--surface-muted);
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    th.sortable { cursor: pointer; }
+    th.sortable:hover { color: var(--text); }
+
+    tbody tr:hover { background: #fbfcfe; }
+
+    .name-cell { font-weight: 750; }
+    .muted { color: var(--muted); }
+    .empty { padding: 42px 20px; text-align: center; color: var(--muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .status-pendente { background: #f1f5f9; color: #475569; }
+    .status-confirmado { background: #dcfce7; color: #166534; }
+    .status-recusou { background: #fee2e2; color: #991b1b; }
+    .status-presente { background: #dbeafe; color: #1d4ed8; }
+    .status-faltou { background: #fef3c7; color: #92400e; }
+    .card-ok { background: #ede9fe; color: #5b21b6; }
+    .card-no { background: #f1f5f9; color: #64748b; }
+
+    .inline-field {
+      width: 100%;
+      min-width: 74px;
+      min-height: 34px;
+      padding: 7px 9px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--text);
+      outline: none;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .inline-field:hover { background: var(--surface-muted); border-color: var(--line-soft); }
+
+    .inline-field:focus {
+      background: var(--surface);
+      border-color: rgba(37, 99, 235, 0.7);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .inline-number { max-width: 86px; }
+    .inline-note { min-width: 170px; }
+    .inline-range { display: flex; gap: 8px; align-items: center; min-width: 140px; }
+    .inline-range input { width: 90px; accent-color: var(--primary); }
+    .inline-range span { min-width: 38px; font-weight: 800; color: var(--muted); }
+
+    .actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .icon-btn { min-height: 34px; padding: 6px 9px; font-size: 0.84rem; }
+
+    .cards-list { display: none; padding: 12px; gap: 12px; }
+
+    .guest-card {
+      padding: 16px;
+      border: 1px solid var(--line-soft);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+
+    .guest-card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .card-stat {
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-muted);
+    }
+
+    .card-stat span { display: block; color: var(--muted); font-size: 0.75rem; font-weight: 700; }
+    .card-stat strong { display: block; margin-top: 3px; }
+    .card-stat .inline-field { margin-top: 5px; background: var(--surface); border-color: var(--line-soft); }
+    .mobile-edit-stack { display: grid; gap: 10px; margin: 12px 0; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.42);
+      z-index: 10;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      width: min(680px, 100%);
+      max-height: min(90vh, 820px);
+      overflow: auto;
+      border-radius: 24px;
+      background: var(--surface);
+      box-shadow: 0 30px 80px rgba(15, 23, 42, 0.28);
+    }
+
+    .modal-header, .modal-footer { padding: 20px 22px; }
+    .modal-header { border-bottom: 1px solid var(--line-soft); }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--line-soft); }
+    .modal-title { margin: 0; font-size: 1.35rem; letter-spacing: -0.03em; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      padding: 22px;
+    }
+
+    .form-group-full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 750;
+    }
+
+    .range-row { display: flex; gap: 12px; align-items: center; }
+    input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .range-value { min-width: 48px; font-weight: 800; text-align: right; }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+    }
+
+    .checkbox-row input { width: 18px; height: 18px; accent-color: var(--primary); }
+
+    @media (max-width: 980px) {
+      .dashboard { grid-template-columns: repeat(2, 1fr); }
+      .toolbar { grid-template-columns: 1fr; }
+      .header { flex-direction: column; }
+      .event-pill { white-space: normal; }
+    }
+
+    @media (max-width: 720px) {
+      .app { width: min(100% - 20px, 1180px); padding-top: 22px; }
+      .dashboard { grid-template-columns: 1fr; }
+      .metric-label { min-height: auto; }
+      .table-wrap { display: none; }
+      .cards-list { display: grid; }
+      .form-grid { grid-template-columns: 1fr; padding: 18px; }
+      .modal-footer { flex-direction: column-reverse; }
+      .modal-footer .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div>
+        <p class="eyebrow">Eventos</p>
+        <h1>Lista de convidados</h1>
+        <p class="subtitle">Controle convidados, confirmações, presença e cartões em uma experiência simples que funciona direto no navegador.</p>
+      </div>
+      <div class="event-pill">✦ Preparado para qualquer evento</div>
+    </header>
+
+    <section class="dashboard" id="dashboard" aria-label="Resumo do evento"></section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <input class="field" id="searchInput" type="search" placeholder="Pesquisar por nome, categoria ou observação">
+        <select class="field" id="categoryFilter" aria-label="Filtrar por categoria"></select>
+        <button class="btn btn-primary" id="newGuestButton" type="button">+ Novo convidado</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr id="tableHead"></tr>
+          </thead>
+          <tbody id="guestTable"></tbody>
+        </table>
+      </div>
+      <div class="cards-list" id="guestCards"></div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <form class="modal" id="guestForm">
+      <div class="modal-header"><h2 class="modal-title" id="modalTitle">Novo convidado</h2></div>
+      <div class="form-grid">
+        <div class="form-group-full">
+          <label for="guestName">Nome</label>
+          <input class="field" id="guestName" name="name" required autocomplete="off">
+        </div>
+        <div>
+          <label for="guestCategory">Categoria</label>
+          <select class="field" id="guestCategory" name="category" required></select>
+        </div>
+        <div>
+          <label for="guestStatus">Status</label>
+          <select class="field" id="guestStatus" name="status" required></select>
+        </div>
+        <div>
+          <label for="guestAdults">Número de adultos</label>
+          <input class="field" id="guestAdults" name="adults" type="number" min="0" step="1" required>
+        </div>
+        <div>
+          <label for="guestChildren">Número de crianças</label>
+          <input class="field" id="guestChildren" name="children" type="number" min="0" step="1" required>
+        </div>
+        <div>
+          <label for="guestBabies">Número de bebês</label>
+          <input class="field" id="guestBabies" name="babies" type="number" min="0" step="1" required>
+        </div>
+        <div>
+          <label for="guestCardDelivered">Cartão entregue</label>
+          <div class="checkbox-row"><input id="guestCardDelivered" name="cardDelivered" type="checkbox"><span>Marcar como entregue</span></div>
+        </div>
+        <div class="form-group-full">
+          <label for="guestProbability">Probabilidade</label>
+          <div class="range-row">
+            <input id="guestProbability" name="probability" type="range" min="0" max="100" step="5">
+            <span class="range-value" id="probabilityValue">80%</span>
+          </div>
+        </div>
+        <div class="form-group-full">
+          <label for="guestNote">Observação</label>
+          <textarea class="field" id="guestNote" name="note" placeholder="Preferências, restrições, vínculo ou qualquer detalhe importante"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancelButton" type="button">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Concluir</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Estado
+    const STORAGE_KEY = 'eventGuestManager.v1';
+    const categories = ['Família', 'Amigos', 'Escola', 'Igreja', 'Trabalho', 'Outros'];
+    const statuses = ['Pendente', 'Confirmado', 'Recusou', 'Presente', 'Faltou'];
+    const state = {
+      guests: [],
+      search: '',
+      category: 'Todos',
+      sortBy: 'name',
+      sortDirection: 'asc',
+      editingId: null
+    };
+
+    const columns = [
+      ['name', 'Nome'], ['category', 'Categoria'], ['adults', 'Adultos'], ['children', 'Crianças'],
+      ['babies', 'Bebês'], ['probability', 'Probabilidade'], ['status', 'Status'], ['cardDelivered', 'Cartão'], ['note', 'Observação'], ['actions', '']
+    ];
+
+    // Persistência
+    function loadGuests() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      state.guests = stored ? JSON.parse(stored) : seedGuests();
+      if (!stored) saveGuests();
+    }
+
+    function saveGuests() {
+      persistGuests();
+      render();
+    }
+
+    function persistGuests() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.guests));
+    }
+
+    function seedGuests() {
+      return [
+        createGuest('Ana Clara e família', 'Família', 2, 2, 0, 100, 'Confirmado', true, 'Primos próximos.'),
+        createGuest('Marina Santos', 'Escola', 1, 1, 0, 85, 'Pendente', false, 'Colega da turma.'),
+        createGuest('Família Oliveira', 'Igreja', 2, 1, 1, 60, 'Pendente', true, 'Talvez cheguem mais tarde.'),
+        createGuest('Pedro Henrique', 'Amigos', 1, 1, 0, 100, 'Presente', true, 'Chegou com antecedência.'),
+        createGuest('Carla e João', 'Trabalho', 2, 0, 0, 0, 'Recusou', false, 'Vão viajar no fim de semana.')
+      ];
+    }
+
+    function createGuest(name, category, adults, children, babies, probability, status, cardDelivered, note) {
+      return { id: generateId(), name, category, adults, children, babies, probability, status, cardDelivered, note };
+    }
+
+    // Dashboard
+    function getProbabilityFactor(guest) {
+      if (['Confirmado', 'Presente'].includes(guest.status)) return 1;
+      if (guest.status === 'Recusou') return 0;
+      return guest.probability / 100;
+    }
+
+    function expectedPeople(guest) {
+      return (guest.adults + guest.children + guest.babies) * getProbabilityFactor(guest);
+    }
+
+    function confirmedPeople(guest) {
+      return ['Confirmado', 'Presente'].includes(guest.status) ? guest.adults + guest.children + guest.babies : 0;
+    }
+
+    function presentPeople(guest) {
+      return guest.status === 'Presente' ? guest.adults + guest.children + guest.babies : 0;
+    }
+
+    function renderDashboard() {
+      const totals = state.guests.reduce((acc, guest) => {
+        const factor = getProbabilityFactor(guest);
+        acc.expected += expectedPeople(guest);
+        acc.confirmed += confirmedPeople(guest);
+        acc.present += presentPeople(guest);
+        acc.cards += guest.cardDelivered ? 1 : 0;
+        acc.adults += guest.adults * factor;
+        acc.children += (guest.children + guest.babies) * factor;
+        return acc;
+      }, { expected: 0, confirmed: 0, present: 0, cards: 0, adults: 0, children: 0 });
+
+      const cards = [
+        ['Total de convidados', state.guests.length],
+        ['Pessoas previstas', formatNumber(totals.expected)],
+        ['Pessoas confirmadas', totals.confirmed],
+        ['Pessoas presentes', totals.present],
+        ['Cartões entregues', `${totals.cards} de ${state.guests.length}`],
+        ['Adultos previstos', formatNumber(totals.adults)],
+        ['Crianças previstas', formatNumber(totals.children)]
+      ];
+
+      document.getElementById('dashboard').innerHTML = cards.map(([label, value]) => `
+        <article class="metric-card"><div class="metric-label">${label}</div><div class="metric-value">${value}</div></article>
+      `).join('');
+    }
+
+    // Lista
+    function filteredGuests() {
+      const term = normalize(state.search);
+      return state.guests
+        .filter(guest => state.category === 'Todos' || guest.category === state.category)
+        .filter(guest => !term || [guest.name, guest.category, guest.note].some(value => normalize(value).includes(term)))
+        .sort(compareGuests);
+    }
+
+    function compareGuests(a, b) {
+      if (state.sortBy === 'actions') return 0;
+      const first = a[state.sortBy];
+      const second = b[state.sortBy];
+      const result = typeof first === 'number' || typeof first === 'boolean'
+        ? Number(first) - Number(second)
+        : String(first || '').localeCompare(String(second || ''), 'pt-BR');
+      return state.sortDirection === 'asc' ? result : -result;
+    }
+
+    function renderTableHead() {
+      document.getElementById('tableHead').innerHTML = columns.map(([key, label]) => {
+        const arrow = state.sortBy === key ? (state.sortDirection === 'asc' ? ' ↑' : ' ↓') : '';
+        return `<th class="${key !== 'actions' ? 'sortable' : ''}" data-sort="${key}">${label}${arrow}</th>`;
+      }).join('');
+    }
+
+    function renderGuestList() {
+      const guests = filteredGuests();
+      const empty = '<tr><td class="empty" colspan="10">Nenhum convidado encontrado.</td></tr>';
+      document.getElementById('guestTable').innerHTML = guests.length ? guests.map(renderGuestRow).join('') : empty;
+      document.getElementById('guestCards').innerHTML = guests.length ? guests.map(renderGuestCard).join('') : '<div class="empty">Nenhum convidado encontrado.</div>';
+    }
+
+    function renderGuestRow(guest) {
+      return `<tr>
+        <td>${inlineText(guest, 'name', 'Nome')}</td>
+        <td>${inlineSelect(guest, 'category', categories)}</td>
+        <td>${inlineNumber(guest, 'adults')}</td>
+        <td>${inlineNumber(guest, 'children')}</td>
+        <td>${inlineNumber(guest, 'babies')}</td>
+        <td>${inlineProbability(guest)}</td>
+        <td>${inlineSelect(guest, 'status', statuses)}</td>
+        <td>${inlineCheckbox(guest)}</td>
+        <td>${inlineText(guest, 'note', 'Observação', 'inline-note')}</td>
+        <td><div class="actions"><button class="btn btn-ghost icon-btn" data-edit="${guest.id}">Modal</button><button class="btn btn-danger icon-btn" data-delete="${guest.id}">Excluir</button></div></td>
+      </tr>`;
+    }
+
+    function renderGuestCard(guest) {
+      return `<article class="guest-card">
+        <div class="guest-card-header"><div>${inlineText(guest, 'name', 'Nome')}</div>${inlineSelect(guest, 'status', statuses)}</div>
+        <div class="mobile-edit-stack">
+          <label>Categoria${inlineSelect(guest, 'category', categories)}</label>
+          <label>Observação${inlineText(guest, 'note', 'Observação')}</label>
+        </div>
+        <div class="card-grid">
+          <div class="card-stat"><span>Adultos</span>${inlineNumber(guest, 'adults')}</div>
+          <div class="card-stat"><span>Crianças</span>${inlineNumber(guest, 'children')}</div>
+          <div class="card-stat"><span>Bebês</span>${inlineNumber(guest, 'babies')}</div>
+          <div class="card-stat"><span>Probabilidade</span>${inlineProbability(guest)}</div>
+        </div>
+        <div class="guest-card-header"><span>${inlineCheckbox(guest)}</span><div class="actions"><button class="btn btn-ghost icon-btn" data-edit="${guest.id}">Modal</button><button class="btn btn-danger icon-btn" data-delete="${guest.id}">Excluir</button></div></div>
+      </article>`;
+    }
+
+    function inlineText(guest, field, label, extraClass = '') {
+      return `<input class="inline-field ${extraClass}" data-inline-id="${guest.id}" data-inline-field="${field}" value="${escapeAttribute(guest[field])}" aria-label="${label}">`;
+    }
+
+    function inlineNumber(guest, field) {
+      return `<input class="inline-field inline-number" data-inline-id="${guest.id}" data-inline-field="${field}" type="number" min="0" step="1" value="${guest[field]}" aria-label="${field}">`;
+    }
+
+    function inlineSelect(guest, field, options) {
+      const optionTags = options.map(option => `<option value="${option}" ${guest[field] === option ? 'selected' : ''}>${option}</option>`).join('');
+      return `<select class="inline-field" data-inline-id="${guest.id}" data-inline-field="${field}" aria-label="${field}">${optionTags}</select>`;
+    }
+
+    function inlineProbability(guest) {
+      return `<div class="inline-range"><input data-inline-id="${guest.id}" data-inline-field="probability" type="range" min="0" max="100" step="5" value="${guest.probability}" aria-label="Probabilidade"><span>${guest.probability}%</span></div>`;
+    }
+
+    function inlineCheckbox(guest) {
+      return `<label class="checkbox-row"><input data-inline-id="${guest.id}" data-inline-field="cardDelivered" type="checkbox" ${guest.cardDelivered ? 'checked' : ''}><span>Cartão entregue</span></label>`;
+    }
+
+    // Modal
+    function openModal(guest = null) {
+      state.editingId = guest ? guest.id : null;
+      document.getElementById('modalTitle').textContent = guest ? 'Editar convidado' : 'Novo convidado';
+      fillForm(guest || createGuest('', 'Família', 1, 0, 0, 80, 'Pendente', false, ''));
+      document.getElementById('modalBackdrop').classList.add('open');
+      document.getElementById('guestName').focus();
+    }
+
+    function closeModal() {
+      state.editingId = null;
+      document.getElementById('modalBackdrop').classList.remove('open');
+      document.getElementById('guestForm').reset();
+    }
+
+    function fillForm(guest) {
+      const form = document.getElementById('guestForm');
+      form.name.value = guest.name;
+      form.category.value = guest.category;
+      form.adults.value = guest.adults;
+      form.children.value = guest.children;
+      form.babies.value = guest.babies;
+      form.probability.value = guest.probability;
+      form.status.value = guest.status;
+      form.cardDelivered.checked = guest.cardDelivered;
+      form.note.value = guest.note;
+      updateProbabilityValue();
+    }
+
+    function readForm() {
+      const form = document.getElementById('guestForm');
+      return {
+        id: state.editingId || generateId(),
+        name: form.name.value.trim(),
+        category: form.category.value,
+        adults: toNumber(form.adults.value),
+        children: toNumber(form.children.value),
+        babies: toNumber(form.babies.value),
+        probability: toNumber(form.probability.value),
+        status: form.status.value,
+        cardDelivered: form.cardDelivered.checked,
+        note: form.note.value.trim()
+      };
+    }
+
+    function saveForm(event) {
+      event.preventDefault();
+      const guest = readForm();
+      if (state.editingId) {
+        state.guests = state.guests.map(item => item.id === state.editingId ? guest : item);
+      } else {
+        state.guests.unshift(guest);
+      }
+      closeModal();
+      saveGuests();
+    }
+
+    // Eventos
+    function bindEvents() {
+      document.getElementById('searchInput').addEventListener('input', event => { state.search = event.target.value; renderGuestList(); });
+      document.getElementById('categoryFilter').addEventListener('change', event => { state.category = event.target.value; renderGuestList(); });
+      document.getElementById('newGuestButton').addEventListener('click', () => openModal());
+      document.getElementById('cancelButton').addEventListener('click', closeModal);
+      document.getElementById('guestForm').addEventListener('submit', saveForm);
+      document.getElementById('guestProbability').addEventListener('input', updateProbabilityValue);
+      document.getElementById('modalBackdrop').addEventListener('click', event => { if (event.target.id === 'modalBackdrop') closeModal(); });
+      document.addEventListener('input', handleInlineEdit);
+      document.addEventListener('change', handleInlineEdit);
+      document.addEventListener('click', handleActionClick);
+      document.addEventListener('keydown', event => { if (event.key === 'Escape') closeModal(); });
+    }
+
+    function handleInlineEdit(event) {
+      const control = event.target.closest('[data-inline-field]');
+      if (!control) return;
+      const guest = state.guests.find(item => item.id === control.dataset.inlineId);
+      if (!guest) return;
+      const field = control.dataset.inlineField;
+      guest[field] = inlineValue(control, field);
+      persistGuests();
+      renderDashboard();
+      updateInlineProbabilityLabel(control, guest);
+    }
+
+    function handleActionClick(event) {
+      const sort = event.target.closest('[data-sort]');
+      const edit = event.target.closest('[data-edit]');
+      const remove = event.target.closest('[data-delete]');
+      if (sort) changeSort(sort.dataset.sort);
+      if (edit) openModal(state.guests.find(guest => guest.id === edit.dataset.edit));
+      if (remove) deleteGuest(remove.dataset.delete);
+    }
+
+    function changeSort(key) {
+      if (key === 'actions') return;
+      state.sortDirection = state.sortBy === key && state.sortDirection === 'asc' ? 'desc' : 'asc';
+      state.sortBy = key;
+      render();
+    }
+
+    function inlineValue(control, field) {
+      if (field === 'cardDelivered') return control.checked;
+      if (['adults', 'children', 'babies', 'probability'].includes(field)) return toNumber(control.value);
+      return control.value.trim();
+    }
+
+    function updateInlineProbabilityLabel(control, guest) {
+      if (control.dataset.inlineField !== 'probability') return;
+      const label = control.nextElementSibling;
+      if (label) label.textContent = `${guest.probability}%`;
+    }
+
+    function deleteGuest(id) {
+      const guest = state.guests.find(item => item.id === id);
+      if (guest && confirm(`Excluir ${guest.name}?`)) {
+        state.guests = state.guests.filter(item => item.id !== id);
+        saveGuests();
+      }
+    }
+
+    // Utilidades
+    function populateSelects() {
+      const categoryOptions = categories.map(category => `<option value="${category}">${category}</option>`).join('');
+      document.getElementById('categoryFilter').innerHTML = ['Todos', ...categories].map(category => `<option value="${category}">${category}</option>`).join('');
+      document.getElementById('guestCategory').innerHTML = categoryOptions;
+      document.getElementById('guestStatus').innerHTML = statuses.map(status => `<option value="${status}">${status}</option>`).join('');
+    }
+
+    function render() {
+      renderDashboard();
+      renderTableHead();
+      renderGuestList();
+    }
+
+    function updateProbabilityValue() {
+      document.getElementById('probabilityValue').textContent = `${document.getElementById('guestProbability').value}%`;
+    }
+
+    function statusBadge(status) {
+      return `<span class="badge status-${normalize(status)}">${status}</span>`;
+    }
+
+    function cardBadge(delivered) {
+      return `<span class="badge ${delivered ? 'card-ok' : 'card-no'}">${delivered ? 'Entregue' : 'Pendente'}</span>`;
+    }
+
+    function normalize(value) {
+      return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    function toNumber(value) {
+      return Math.max(0, Number(value) || 0);
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(value);
+    }
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = value;
+      return div.innerHTML;
+    }
+
+    function escapeAttribute(value) {
+      return escapeHtml(value).replace(/"/g, '&quot;');
+    }
+
+    function generateId() {
+      if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') return globalThis.crypto.randomUUID();
+      return `guest-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+
+    populateSelects();
+    bindEvents();
+    loadGuests();
+  </script>
+</body>
+</html>
